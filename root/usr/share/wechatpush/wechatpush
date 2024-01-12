@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 读取设置文件
+# Read settings file
 function get_config(){
 	while [[ "$*" != "" ]]; do
 		eval ${1}='`uci get wechatpush.config.$1`' 2>/dev/null
@@ -8,7 +8,7 @@ function get_config(){
 	done
 }
 
-# 后台读取 json 中的变量
+# Read variables in json in the background
 read_json() {
 	local json_key="$1"
 	local json_path="$2"
@@ -16,7 +16,7 @@ read_json() {
 	jq -r ."$json_key" "$json_path" > "$output_file" &
 }
 
-# 遍历输出目录，将文件内容保存到对应的变量
+# Traverse the output directory and save the file contents to the corresponding variables
 wait_and_cat() {
 	[ $(ls -A "$output_dir" | wc -l) -eq 0 ] && return
 	wait
@@ -28,7 +28,7 @@ wait_and_cat() {
 	rm "$output_dir"/*
 }
 
-# 初始化设置信息
+# Initialization setting information
 function read_config(){
 	get_config \
 	"enable" "lite_enable" "device_name" "proxy_address" "sleeptime" "oui_data" "reset_regularly" "debuglevel" \
@@ -100,27 +100,27 @@ function read_config(){
 	cron
 }
 
-# 初始化
+# initialization
 function init(){
 	enable_detection
 	echo "---------------------------------------------------------------------------------------" >> ${logfile}
-	echo "`date "+%Y-%m-%d %H:%M:%S"` 【初始化】start running..." >> ${logfile}
+	echo "`date "+%Y-%m-%d %H:%M:%S"` 【initialize】start running..." >> ${logfile}
 	if [ -f "/usr/share/wechatpush/errlog" ]; then
 		cat /usr/share/wechatpush/errlog > ${logfile}
-		echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】载入上次重启前日志" >> ${logfile}
+		echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】Load the log before the last restart" >> ${logfile}
 	fi
 	/usr/libexec/wechatpush-call "down_oui"
 
 	rm -f ${dir}fd1 ${dir}sheep_usage ${dir}old_sheep_usage ${dir}client_usage_aliases ${dir}old_client_usage_aliases /usr/share/wechatpush/errlog >/dev/null 2>&1
-	[ ! -f "/usr/sbin/wrtbwmon" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【info】未安装 wrtbwmon ，流量统计不可用" >> ${logfile}
-	[ -z "$ip_version" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】无法获取依赖项 iputils-arping 版本号，请确认插件是否正常运行" >> ${logfile}
-	[ -z "$cu_version" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】无法获取依赖项 curl 版本号，请确认插件是否正常运行" >> ${logfile}
-	[ -z "${sckey}${tg_token}${pushplus_token}${corpid}${wxpusher_apptoken}${wxpusher_uids}${wxpusher_topicIds}" -a "${jsonpath}" != "/usr/share/wechatpush/api/diy.json" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】请填写正确的 key " >> ${logfile} && return 1
-	local interfacelist=`getinterfacelist` && [ -z "$interfacelist" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】存在多个接口或配置错误，可能无法获取接口在线时间等信息，请确认插件是否正常运行" >> ${logfile}
+	[ ! -f "/usr/sbin/wrtbwmon" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【info】Not Installed wrtbwmon ，Traffic statistics are not available" >> ${logfile}
+	[ -z "$ip_version" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】Unable to get dependencies iputils-arping version number, please confirm whether the plug-in is running normally" >> ${logfile}
+	[ -z "$cu_version" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】Unable to get dependencies curl version number, please confirm whether the plug-in is running normally" >> ${logfile}
+	[ -z "${sckey}${tg_token}${pushplus_token}${corpid}${wxpusher_apptoken}${wxpusher_uids}${wxpusher_topicIds}" -a "${jsonpath}" != "/usr/share/wechatpush/api/diy.json" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】Please fill in the correct key " >> ${logfile} && return 1
+	local interfacelist=`getinterfacelist` && [ -z "$interfacelist" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】There are multiple interfaces or configuration errors. Information such as the interface online time may not be obtained. Please confirm whether the plug-in is running normally." >> ${logfile}
 	[ -n "$notification_temp" ] && [ -n "$temperature_threshold" ] && local cpu_temp=`soc_temp` || local cpu_temp="null"
-	[ -z "$cpu_temp" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】无法读取设备温度，请检查命令" >> ${logfile}
+	[ -z "$cpu_temp" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】Unable to read device temperature, please check the command" >> ${logfile}
 	[ -n "$notification_load" ] && [ -n "$cpu_load_threshold" ] && local cpu_fuzai=`cat /proc/loadavg|awk '{print $1}'` 2>/dev/null || local cpu_fuzai="null"
-	[ -z "$cpu_fuzai" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】无法读取设备负载，请检查命令" >> ${logfile}
+	[ -z "$cpu_fuzai" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】Unable to read device load, please check command" >> ${logfile}
 
 	[ -n "$login_web_black" ] && [ "$login_web_black" -eq "1" ] && init_ip_black "ipv4"
 	[ -n "$login_web_black" ] && [ "$login_web_black" -eq "1" ] && init_ip_black "ipv6"
@@ -135,28 +135,28 @@ function init(){
 	return 0
 }
 
-# 推送
+# push
 function diy_send(){
 	( ! echo "$lite_enable"|grep -q "content" ) && ( ! echo "$lite_enable"|grep -q "nowtime" ) && local nowtime=`date "+%Y-%m-%d %H:%M:%S"`
-	! jq -r '.' ${3} >/dev/null 2>&1 && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】json 文件格式错误，这不是一个标准的 json 文件，请检查 ${3} 文件是否有特殊符号未转义或语法错误" >> ${logfile} && return 1
+	! jq -r '.' ${3} >/dev/null 2>&1 && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】json File format error，This is not a standard json 文件，Please check the ${3} file for unescaped special symbols or syntax errors" >> ${logfile} && return 1
 	local diyurl=`jq -r .url ${3}` && local diyurl=`eval echo ${diyurl}`
 	local type=`jq -r '.type' ${3}` && local type=`eval echo ${type}`
 	local data=`jq -r '.data' ${3}` && local data=`eval echo ${data}`
 	local content_type=`jq -r '.content_type' ${3}`
-	! jq "$type" ${3} > ${tempjsonpath} && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】type:{ } 字段转义变量后格式错误，请检查 type:{ } 字段内是否有特殊符号未转义或语法错误" >> ${logfile} && return 1
+	! jq "$type" ${3} > ${tempjsonpath} && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】type:{ } The format of the field is incorrect after escaping the variable. Please check whether there are any special symbols in the type:{ } field that are not escaped or have syntax errors." >> ${logfile} && return 1
 
 	[ -n "$proxy_address" ] && local proxy_cmd="-x $proxy_address"
 	curl $proxy_cmd --connect-timeout 30 -m 60 --retry 1 -X POST -H "$content_type" -d "$data" "${diyurl}"
 	local RETVAL=$?
 	if [ -n "$4" ] || [ $RETVAL -ne 0 ]; then
-		echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】网络错误或 URL 错误，推送失败，curl 返回值为 ${RETVAL}，请参考如下调试信息进行排查" >> ${logfile}
+		echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】Network error or URL error, push failed, curl return value is ${RETVAL}, please refer to the following debugging information to troubleshoot" >> ${logfile}
 		echo '{"url":"'${diyurl}'","content_type":"'${content_type}'","type":'`jq "$type" ${3}`'}' > ${dir}debug_send_json
 		echo -e "${send_title}" "${send_content}" > ${dir}debug_send_content
 		cat ${tempjsonpath} > ${dir}debug_send_data
-		! jq -r '.' ${dir}debug_send_json && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】转义变量后格式错误，请检查 ${dir}debug_send_json 字段内是否有特殊符号未转义或语法错误" >> ${logfile}
-		echo "`date "+%Y-%m-%d %H:%M:%S"` 【debug】json 文件已保存至：${dir}debug_send_json"  >> ${logfile}
-		echo "`date "+%Y-%m-%d %H:%M:%S"` 【debug】推送内容预览文件保存至：${dir}debug_send_content" >> ${logfile}
-		echo "`date "+%Y-%m-%d %H:%M:%S"` 【debug】如果收不到信息，请检查 ${dir}debug_send_data 文件，或使用下列命令手动测试返回值 (可能需要关闭日志自动刷新方便选中)" >> ${logfile}
+		! jq -r '.' ${dir}debug_send_json && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】The format is wrong after escaping the variable. Please check whether there are special symbols in the ${dir}debug_send_json field that are not escaped or have syntax errors." >> ${logfile}
+		echo "`date "+%Y-%m-%d %H:%M:%S"` 【debug】json File saved to：${dir}debug_send_json"  >> ${logfile}
+		echo "`date "+%Y-%m-%d %H:%M:%S"` 【debug】Push content preview file is saved to：${dir}debug_send_content" >> ${logfile}
+		echo "`date "+%Y-%m-%d %H:%M:%S"` 【debug】If you don't receive the message, please check ${dir}debug_send_data file, or use the following command to manually test the return value (you may need to turn off automatic log refresh for easy selection)" >> ${logfile}
 		echo "`date "+%Y-%m-%d %H:%M:%S"` 【debug】"'curl -X POST -H "'$content_type'" -d "@'${dir}debug_send_data'" "'${diyurl}'"  ' >> ${logfile}
 		[ -n "$4" ] && [ $RETVAL -eq 0 ] && return 0
 		return 1
@@ -165,14 +165,14 @@ function diy_send(){
 	fi
 }
 
-# 清理临时文件
+# Clean temporary files
 function deltemp(){
 	unset title	content ipAddress_logrow online_list online_mac mac_online_status gateway_iplist
 	rm -f ${dir}title ${dir}content ${dir}tmp_downlist ${dir}send_enable.lock ${tempjsonpath} ${dir}cookies.txt ${dir}tmp_sort_file >/dev/null 2>&1
 	[ ! -f ${dir}ipAddress ] && rm -f ${dir}client/* >/dev/null 2>&1
 	LockFile unlock
 	[ -f ${logfile} ] && local logrow=$(grep -c "" ${logfile}) || local logrow="0"
-	[ $logrow -gt 500 ] && sed -i '1,100d' ${logfile} && echo "`date "+%Y-%m-%d %H:%M:%S"`  【清理】日志超出上限，删除前 100 条" >> ${logfile}
+	[ $logrow -gt 500 ] && sed -i '1,100d' ${logfile} && echo "`date "+%Y-%m-%d %H:%M:%S"`  【clean up】The log exceeds the upper limit, delete the first 100 entries" >> ${logfile}
 }
 
 # 检测程序开关
@@ -1128,7 +1128,7 @@ function get_disk() {
 
 	# 查询本地硬盘名
 	local_disk_names=($(lsblk 2>/dev/null | awk '$NF=="disk" {print $1}' | sort -u))
-	# 如未安装 lsblk，查找以 /dev/ 开头，但挂载点不是根目录 / 的设备，然后提取硬盘的名称(准确性较低)
+	# Not Installed lsblk，查找以 /dev/ 开头，但挂载点不是根目录 / 的设备，然后提取硬盘的名称(准确性较低)
 	[ -z "$local_disk_names" ] && local_disk_names=($(df -h 2>/dev/null | awk '$1 ~ /^\/dev/ {if ($NF ~ /^\/[a-zA-Z0-9]/) { sub("/dev/", "", $1); sub(/[0-9]+$/, "", $1); print $1 }}' | sort -u))
 	local_disk_tags=($(for _ in "${local_disk_names[@]}"; do echo "local"; done))
 
@@ -1407,7 +1407,7 @@ function add_ip_white() {
 	ipset -exist add $ipset_name $1 timeout $timeout
 }
 
-# 初始化白名单
+# Initialize whitelist
 function init_ip_white() {
 	[ -n "$port_knocking_enable" ] && [ "$port_knocking_enable" -eq "1" ] || return
 	# 设置 IP 版本变量
@@ -1467,7 +1467,7 @@ function init_ip_white() {
 	unset port_forward
 }
 
-# 初始化黑名单规则
+# 黑名单规则
 function init_ip_black(){
 	[ -n "$login_web_black" ] && [ "$login_web_black" -eq "1" ] || return
 	# 设置 IP 版本变量
@@ -1657,7 +1657,7 @@ function send(){
 	return $RETVAL
 }
 
-# 初始化
+# 
 if [ "$1" ] ;then
 	[ $1 == "soc" ] && get_config "soc_code" "server_host" "server_port"
 	[ $1 == "soc" ] && soc_temp && exit $?
@@ -1764,9 +1764,9 @@ fi
 
 # 载入在线设备
 init;[ $? -eq 1 ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【！！！】读取设置出错，请检查设置项 " >> ${logfile} && exit
-echo "`date "+%Y-%m-%d %H:%M:%S"` 【初始化】载入在线设备..." >> ${logfile}
+echo "`date "+%Y-%m-%d %H:%M:%S"` 【】载入在线设备..." >> ${logfile}
 > ${dir}send_enable.lock && first && deltemp
-echo "`date "+%Y-%m-%d %H:%M:%S"` 【初始化】初始化完成" >> ${logfile}
+echo "`date "+%Y-%m-%d %H:%M:%S"` 【initialize】loading finished" >> ${logfile}
 
 # 循环
 while [ "$enable" -eq "1" ]; do
