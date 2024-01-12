@@ -175,7 +175,7 @@ function deltemp(){
 	[ $logrow -gt 500 ] && sed -i '1,100d' ${logfile} && echo "`date "+%Y-%m-%d %H:%M:%S"`  【clean up】The log exceeds the upper limit, delete the first 100 entries" >> ${logfile}
 }
 
-# 检测程序开关
+# Detection program switch
 function enable_detection(){
 	[ ! "$1" ] && local time_n=1
 	for i in `seq 1 $time_n`; do
@@ -183,17 +183,17 @@ function enable_detection(){
 	done
 }
 
-# 获取 ip
+# Obtain ip
 function getip(){
 	[ ! "$1" ] && return
 
-	# 从接口获取 IPv4
+	# Get from interface IPv4
 	if [ $1 == "wanipv4" ] ;then
 		[ ! -z "$ipv4_interface" ] && local wanIP=$(/sbin/ifconfig ${ipv4_interface}|awk '/inet addr/ {print $2}'|awk -F: '{print $2}'|grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
 		[ -z "$ipv4_interface" ] && local wanIP=$(getinterfacelist|grep '\"address\"'|grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
 		echo "$wanIP"
 
-	# 从 URL 获取 IPv4
+	# from URL Obtain IPv4
 	elif [ $1 == "hostipv4" ] ;then
 		local url_number=`echo "$ipv4_urllist"|wc -l`
 		local rand_number=`rand 1 $url_number`
@@ -201,7 +201,7 @@ function getip(){
 		{
 			local ipv4_URL=`echo "$ipv4_urllist"| sed -n "${1}p"|sed -e 's/\r//g'`
 			[ ! -z "$ipv4_interface" ] && local tmp_hostIP=$(eval "curl --connect-timeout 2 -m 2 -k -s -4 --interface ${ipv4_interface} -m 5 ${ipv4_URL}") || local tmp_hostIP=$(eval "curl --connect-timeout 2 -m 2 -k -s -4 -m 5 ${ipv4_URL}")
-			[ -z "$tmp_hostIP" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【info】IP 获取失败，当前使用的 API 为 $ipv4_URL & ${ipv4_interface}" >> ${logfile}
+			[ -z "$tmp_hostIP" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【info】IP Failed to obtain, currently using API from $ipv4_URL & ${ipv4_interface}" >> ${logfile}
 			local tmp_hostIP=`echo $tmp_hostIP|grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'|head -n1`
 			echo "{\"IP\":\"${tmp_hostIP}\", \"URL\":\"${ipv4_URL}\"}"
 		}
@@ -212,13 +212,13 @@ function getip(){
 		[ -z `echo $hostIP|jq -r '.IP'` ] && ipv4_urllist=`cat /usr/share/wechatpush/api/ipv4.list` 2>/dev/null
 		echo $hostIP
 
-	# 从接口获取 IPv6
+	# Get from interface IPv6
 	elif [ $1 == "wanipv6" ] ;then
 		[ ! -z "$ipv6_interface" ] && local wanIPv6=$(ip -6 addr show dev ${ipv6_interface}|grep "inet6"|grep "global dynamic noprefixroute"|awk '{print $2, $4}'|sort -k3 -n|head -n 1|awk '{print $1}'|grep -oE "([\da-fA-F0-9]{1,4}(:{1,2})){1,15}[\da-fA-F0-9]{1,4}")
 		[ -z "$ipv6_interface" ] && local wanIPv6=$(ip -6 addr show|grep "inet6"|grep "global dynamic noprefixroute"|awk '{print $2, $4}'|sort -k3 -n|head -n 1|awk '{print $1}'|grep -oE "([\da-fA-F0-9]{1,4}(:{1,2})){1,15}[\da-fA-F0-9]{1,4}")
 		echo "$wanIPv6"
 
-	# 从 URL 获取 IPv6
+	# from URL Obtain IPv6
 	elif [ $1 == "hostipv6" ] ;then
 		local urlv6_number=`echo "$ipv6_urllist"|wc -l`
 		local rand_numberv6=`rand 1 $urlv6_number`
@@ -226,7 +226,7 @@ function getip(){
 		{
 			local ipv6_URL=`echo "$ipv6_urllist"| sed -n "${1}p"|sed -e 's/\r//g'`
 			[ ! -z "$ipv6_interface" ] && local tmp_hostIPv6=$(eval "curl --connect-timeout 2 -m 2 -k -s -6 --interface ${ipv6_interface} -m 5 ${ipv6_URL}") || local tmp_hostIPv6=$(eval "curl --connect-timeout 2 -m 2 -k -s -6 -m 5 ${ipv6_URL}")
-			[ -z "$tmp_hostIPv6" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【info】IP 获取失败，当前使用的 API 为 $ipv6_URL & ${ipv6_interface}" >> ${logfile}
+			[ -z "$tmp_hostIPv6" ] && echo "`date "+%Y-%m-%d %H:%M:%S"` 【info】IP Failed to obtain, currently using API from $ipv6_URL & ${ipv6_interface}" >> ${logfile}
 			local tmp_hostIPv6=`echo $tmp_hostIPv6|grep -oE "([\da-fA-F0-9]{1,4}(:{1,2})){1,15}[\da-fA-F0-9]{1,4}"|head -n1`
 			echo "{\"IP\":\"${tmp_hostIPv6}\", \"URL\":\"${ipv6_URL}\"}"
 		}
@@ -239,7 +239,7 @@ function getip(){
 	fi
 }
 
-# 获取接口信息
+# Get interface information
 function getinterfacelist(){
 	[ `ubus list|grep -w -i "network.interface.wan"|wc -l` -ge "1" ] && ubus call network.interface.wan status && return
 	[ ! -z "$ipv4_interface" ] && local device_name=$ipv4_interface || [ ! -z "$ipv6_interface" ] && local device_name=$ipv6_interface
@@ -429,7 +429,7 @@ function usage(){
 		function version_ge() { test "$(echo "$@"|tr " " "\n"|sort -r|head -n 1)" == "$1"; }
 		[ ! -z "$wr_version" ] && ( version_ge "${wr_version}" "1.2.0" ) && wrtbwmon -f ${dir}usage.db 2>/dev/null && return
 		[ ! -z "$wr_version" ] && ( version_le "${wr_version}" "1.0.0" ) || [ -z "$wr_version" ] && wrtbwmon update ${dir}usage.db 2>/dev/null && return
-	# 获取
+	# Obtain
 	elif [ $1 == "get" ] ;then
 		[ ! -f "${dir}usage.db" ] && [ ! "$3" ] && echo `bytes_for_humans 0` && return
 		[ ! -f "${dir}usage.db" ] && [ "$3" ] && echo 0 && return
@@ -1657,7 +1657,7 @@ function send(){
 	return $RETVAL
 }
 
-# 
+# initialization
 if [ "$1" ] ;then
 	[ $1 == "soc" ] && get_config "soc_code" "server_host" "server_port"
 	[ $1 == "soc" ] && soc_temp && exit $?
